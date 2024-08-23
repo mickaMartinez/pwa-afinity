@@ -74,6 +74,17 @@
             </b-col>
         </b-row>
 
+        <b-row>
+            <b-col sm="12" md="6">
+                <b-form-group label="Imagen:" label-for="input"
+                    description="Debe escoger una imagen .png, maximo de dimensiones 350px">
+                    <b-form-file placeholder="Seleccionar imagen *" accept=".png" browse-text="Abrir"
+                        :state="form.imagen != null" :disabled="cargando" required
+                        v-on:change="seleccionarArchivo"></b-form-file>
+                </b-form-group>
+            </b-col>
+        </b-row>
+
         <div v-if="!editar">
             <b-button type="submit" variant="success" :disabled="cargando">enviar</b-button>
             <b-button class="ml-4" type="reset" variant="danger" :disabled="cargando">Reset</b-button>
@@ -116,6 +127,7 @@ export default {
                 correo: null,
                 telefono: null,
                 estatus: null,
+                imagen: null,
             },
             validate: false,
             cargando: false,
@@ -176,6 +188,44 @@ export default {
                 }
             });
         },
+        seleccionarArchivo(e) {
+            let files = e.target.files || e.dataTransfer.files;
+            const file = new Blob([files[0]], { type: "image/png" });
+
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (evt) => {
+                let img = new Image();
+                img.src = evt.target.result;
+
+                img.onload = () => {
+                    if (img.width > 350 || img.height > 350) {
+                        this.$swal({
+                            icon: "error",
+                            title: "La imagen excede del tamaño 350px",
+                            confirmButtonText: "OK",
+                            confirmButtonColor: "#1a4944",
+                        });
+                    } else {
+                        const name = e.target.files[0].name;
+                        const lastDot = name.lastIndexOf(".");
+                        const fileName = name.substring(0, lastDot);
+                        const ext = name.substring(lastDot + 1);
+
+                        const formData = new FormData();
+                        formData.append("imagenBase", file, fileName);
+                        formData.append("nombre", fileName);
+                        formData.append("ext", ext);
+
+                        this.form.imagen = formData;
+                    }
+                };
+            };
+
+            reader.onerror = (evt) => {
+                console.error(evt);
+            };
+        },
         validateFilter() {
             const regex = /['"]/;
             const nom = regex.test(this.form.nombre);
@@ -189,7 +239,6 @@ export default {
 
             return validate;
         },
-
         onReset() {
             this.form = { ...this.initial };
         }
