@@ -1,74 +1,45 @@
 <template>
 <div>
-    <!-- <b-form @submit.prevent="onSubmit" @reset="onReset">
-        <b-row>
-            <b-col sm="12" md="6">
-                <b-form-group label="Nombre:" label-for="input">
-                    <b-form-input :state="form.nombre != null && form.nombre != ''" v-model.trim="form.nombre"
-                        @copy.prevent @paste.prevent :disabled="cargando" placeholder="Nombre" required>
-                    </b-form-input>
-                    <b-form-invalid-feedback :state="form.nombre != null">
-                        El nombre es requerido
-                    </b-form-invalid-feedback>
-                </b-form-group>
-            </b-col>
-            <b-col sm="12" md="6">
-                <b-form-group label="Apellido Paterno:" label-for="input">
-                    <b-form-input :state="form.apellidoPaterno != null && form.apellidoPaterno != ''"
-                        v-model.trim="form.apellidoPaterno" @copy.prevent @paste.prevent :disabled="cargando"
-                        placeholder="Apellido Paterno" required>
-                    </b-form-input>
-                    <b-form-invalid-feedback :state="form.apellidoPaterno != null">
-                        El apellido paterno es requerido
-                    </b-form-invalid-feedback>
-                </b-form-group>
-            </b-col>
-        </b-row>
+    <div class="text-center">
+        <b-button v-b-toggle.collapse-1 variant="warning">Busqueda Avanzada</b-button>
+    </div>
+    <b-collapse id="collapse-1" class="mt-2">
+        <b-card>
+            <b-form @submit.prevent="busquedaAvanzada">
+                <b-row>
+                    <b-col sm="12" md="6">
+                        <b-form-group label="Nombre del alumno:" label-for="input">
+                            <b-form-input :state="form.nombre != null && form.nombre != ''" v-model.trim="form.nombre"
+                                @copy.prevent @paste.prevent :disabled="cargando" placeholder="Nombre" required>
+                            </b-form-input>
+                            <b-form-invalid-feedback :state="form.nombre != null">
+                                El nombre del alumno es requerido
+                            </b-form-invalid-feedback>
+                        </b-form-group>
+                    </b-col>
+                    <b-col sm="12" md="6">
+                        <b-form-group label="Correo:" label-for="input">
+                            <b-form-input v-model.trim="form.correo" @copy.prevent @paste.prevent :disabled="cargando"
+                                type="email" placeholder="Correo">
+                            </b-form-input>
+                        </b-form-group>
+                    </b-col>
+                </b-row>
+                <b-row>
+                    <b-col sm="12" md="6">
+                        <b-form-group label="Estatus:" label-for="input">
+                            <b-form-select v-model="form.estatus" :options="estatus"
+                                :disabled="cargando"></b-form-select>
+                        </b-form-group>
+                    </b-col>
+                </b-row>
 
-        <b-row>
-            <b-col sm="12" md="6">
-                <b-form-group label="Apellido Materno:" label-for="input">
-                    <b-form-input :state="form.apellidoMaterno != null && form.apellidoMaterno != ''"
-                        v-model.trim="form.apellidoMaterno" @copy.prevent @paste.prevent :disabled="cargando"
-                        placeholder="Apellido Materno" required>
-                    </b-form-input>
-                    <b-form-invalid-feedback :state="form.apellidoMaterno != null">
-                        El apellido materno es requerido
-                    </b-form-invalid-feedback>
-                </b-form-group>
-            </b-col>
+                <b-button type="submit" class="float-right" variant="success" :disabled="cargando">buscar</b-button>
+            </b-form>
+        </b-card>
+    </b-collapse>
 
-            <b-col sm="12" md="6">
-                <b-form-group label="Correo:" label-for="input">
-                    <b-form-input :state="form.correo != null && form.correo != ''" v-model.trim="form.correo"
-                        @copy.prevent @paste.prevent :disabled="cargando" type="email" placeholder="Correo" required>
-                    </b-form-input>
-                    <b-form-invalid-feedback :state="form.correo != null">
-                        El apellido Correo es requerido
-                    </b-form-invalid-feedback>
-                </b-form-group>
-            </b-col>
-        </b-row>
-
-        <b-row>
-            <b-col sm="12" md="6">
-                <b-form-group label="Telefono:" label-for="input">
-                    <b-form-input :state="form.telefono != null && form.telefono != ''" v-model="form.telefono"
-                        @copy.prevent @paste.prevent :disabled="cargando" type="text" pattern="[0-9]+"
-                        placeholder="Telefono" required>
-                    </b-form-input>
-                    <b-form-invalid-feedback :state="form.telefono != null">
-                        El Telefono es requerido
-                    </b-form-invalid-feedback>
-                </b-form-group>
-            </b-col>
-        </b-row>
-
-        <b-button type="submit" variant="success" :disabled="cargando">enviar</b-button>
-        <b-button class="ml-4" type="reset" variant="danger" :disabled="cargando">Reset</b-button>
-    </b-form> -->
-
-    <div>
+    <div class="mt-4">
         <b-table striped hover responsive :items="registros" :fields="fields" :busy="cargando">
             <template #cell(estatus)="row">
                 <b-badge variant="primary" v-if="row.item.estatus">{{ row.item.estatus }}</b-badge>
@@ -117,6 +88,16 @@ export default {
     },
     data() {
         return {
+            estatus: [
+                {
+                    value: true,
+                    text: "Activo"
+                },
+                {
+                    value: false,
+                    text: "Inactivo"
+                }
+            ],
             fields: [
                 {
                     key: 'idAlumno',
@@ -152,7 +133,12 @@ export default {
             paginaActual: 1,
             filterData: {},
             detalle: {},
-            cargando: true
+            cargando: true,
+            form: {
+                nombre: null,
+                correo: null,
+                estatus: null
+            },
         };
     },
     created() {
@@ -179,6 +165,19 @@ export default {
             this.$refs['modal-detalle'].show();
             this.detalle = scope;
         },
+        busquedaAvanzada() {
+            this.cargando = true;
+
+            let url = this.$api + "alumnos/avanzada";
+            this.$http.post(url, this.form).then((response) => {
+                if (response.data.data) {
+                    this.registros = response.data.data;
+                    this.total = response.data.data.length;
+                }
+            }).finally(() => {
+                this.cargando = false;
+            });
+        }
     },
 };
 </script>

@@ -241,7 +241,7 @@ export default {
         },
         onReset() {
             this.form = { ...this.initial };
-        }
+        },
     },
 };
 </script>
